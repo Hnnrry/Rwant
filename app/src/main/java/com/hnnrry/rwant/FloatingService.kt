@@ -48,6 +48,8 @@ class FloatingService : Service() {
         private const val TAG = "RwantFloat"
         private const val CHANNEL_ID = "rwant_floating_v1"
         private const val NOTIFICATION_ID = 2001
+        /** 通知栏「对话」按钮发出的 action：调出悬浮球 + 面板 */
+        const val ACTION_SHOW = "com.hnnrry.rwant.FLOAT_SHOW"
 
         @Volatile
         var isRunning: Boolean = false
@@ -91,6 +93,12 @@ class FloatingService : Service() {
     @Volatile var mood: String = "idle"
         private set
 
+    /** 自动展开的面板（AI 说话 / 用户说话触发），说完后随悬浮球一起收起 */
+    private var autoPanel = false
+    /** 说完后延时收起悬浮球的任务 */
+    private var hideRunnable: Runnable? = null
+    private val HIDE_DELAY_MS = 6000L
+
     // ---------------------------------------------------------------- 生命周期
 
     override fun onCreate() {
@@ -129,10 +137,22 @@ class FloatingService : Service() {
                 ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
             } else 0
         )
-        attachBall()
+        // 悬浮球默认隐藏：AI 说话时由 showBall() 弹出，说完后自动收起（hideBall）
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (intent?.action == ACTION_SHOW) {
+            runOnUi {
+                showBall()
+                if (panelView == null) attachPanel()
+                autoPanel = false
+                cancelHide()
+            }
+        }
+        return START_STICKY
+    }
 
     override fun onDestroy() {
         runCatching { tts?.shutdown() }
@@ -176,6 +196,34 @@ class FloatingService : Service() {
         ballView = null; ballParams = null
     }
 
+    // ---------------------------------------------------------------- 显隐（说话时开、说完后自动关）
+
+    /** 显示悬浮球（若尚未挂载则挂载） */
+    private fun showBall() {
+        runOnUi { if (ballView == null) attachBall() }
+    }
+
+    /** 隐藏悬浮球 */
+    private fun hideBall() {
+        runOnUi { removeBall() }
+    }
+
+    /** 说完后延时收起：自动展开的面板 + 悬浮球一起收；正在听则顺延 */
+    private fun scheduleHide() {
+        cancelHide()
+        hideRunnable = Runnable {
+            if (asr?.listening == true) { scheduleHide(); return@Runnable }
+            if (autoPanel) { runOnUi { removePanel() }; autoPanel = false }
+            hideBall()
+        }
+        mainHandler.postDelayed(hideRunnable!!, HIDE_DELAY_MS)
+    }
+
+    private fun cancelHide() {
+        hideRunnable?.let { mainHandler.removeCallbacks(it) }
+        hideRunnable = null
+    }
+
     private fun ballDragListener(params: WindowManager.LayoutParams): View.OnTouchListener {
         var downX = 0f; var downY = 0f; var startX = 0; var startY = 0
         return View.OnTouchListener { _, event ->
@@ -201,6 +249,7 @@ class FloatingService : Service() {
     /** 设置悬浮球状态色：idle / thinking / speaking */
     fun setMood(state: String) {
         mood = state
+        if (state != "idle") { cancelHide(); showBall() }
         runOnUi {
             (ballView?.background as? GradientDrawable)?.setColor(moodColor(state))
             when (state) {
@@ -215,6 +264,7 @@ class FloatingService : Service() {
                 }
             )
         }
+        if (state == "idle") scheduleHide()
     }
 
     private fun startPulse() {
@@ -300,6 +350,7 @@ class FloatingService : Service() {
     fun speak(text: String, quiet: Boolean = false) {
         if (EmergencyStop.isActive()) return
         LogStore.operation("AI", "说", if (quiet) "（静音）$text" else text)
+        autoPanel = true
         runOnUi {
             ensurePanelForBubble()
             addBubble(text, isUser = false)
@@ -310,6 +361,7 @@ class FloatingService : Service() {
 
     /** 用户说话：右侧气泡 */
     fun showUserBubble(text: String) {
+        autoPanel = true
         runOnUi {
             ensurePanelForBubble()
             addBubble(text, isUser = true)
@@ -404,13 +456,19 @@ class FloatingService : Service() {
             this, 0, Intent(this, MainActivity::class.java),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
+        val showIntent = PendingIntent.getService(
+            this, 1,
+            Intent(this, FloatingService::class.java).setAction(ACTION_SHOW),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_dialog_info)
             .setContentTitle(getString(R.string.app_name))
-            .setContentText("悬浮球常驻中 · 点按展开对话")
+            .setContentText("AI 说话时自动弹出 · 点「对话」随时调出")
             .setOngoing(true)
             .setOnlyAlertOnce(true)
             .setContentIntent(openIntent)
+            .addAction(android.R.drawable.ic_btn_speak_now, "对话", showIntent)
             .build()
     }
 }

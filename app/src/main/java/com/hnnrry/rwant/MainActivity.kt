@@ -9,11 +9,18 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.os.PowerManager
+import android.view.View
 import android.provider.Settings
+import android.widget.LinearLayout
 import android.widget.SeekBar
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -35,6 +42,16 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private var connected = false
+
+    /** 前台轮询刷新连接请求卡片 + 信任中心（不依赖广播，避免 MIUI 丢广播导致入口丢失） */
+    private val pollHandler = Handler(Looper.getMainLooper())
+    private val pollRunnable = object : Runnable {
+        override fun run() {
+            refreshRequestCard()
+            refreshTrustList()
+            pollHandler.postDelayed(this, 1000)
+        }
+    }
 
     private val connectReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -114,10 +131,12 @@ class MainActivity : AppCompatActivity() {
         refreshChannel()
         refreshPermissions()
         binding.tvLastOp.text = "最近操作：${LogStore.lastOperation}"
+        pollHandler.post(pollRunnable)
     }
 
     override fun onPause() {
         TrustCenter.mainUiInForeground = false
+        pollHandler.removeCallbacks(pollRunnable)
         super.onPause()
     }
 
@@ -188,12 +207,81 @@ class MainActivity : AppCompatActivity() {
         startActivity(Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, Uri.parse("package:$packageName")))
     }
 
+    // ---------------------------------------------------------------- 连接请求卡片 + 信任中心（轮询刷新，不依赖广播）
+
+    private fun refreshRequestCard() {
+        val pending = TrustCenter.allProfiles().firstOrNull { !it.approved }
+        if (pending != null) {
+            binding.cardRequest.visibility = View.VISIBLE
+            binding.tvNoRequest.visibility = View.GONE
+            binding.tvRequestName.text = "「${pending.name}」请求连接 Rwant"
+            binding.btnApproveRequest.text = "同意「${pending.name}」连接"
+            binding.btnApproveRequest.setOnClickListener {
+                TrustCenter.approveAi(this, pending.id)
+                Toast.makeText(this, "已同意「${pending.name}」", Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            binding.cardRequest.visibility = View.GONE
+            binding.tvNoRequest.visibility = View.VISIBLE
+        }
+    }
+
+    private fun refreshTrustList() {
+        val list = binding.trustList
+        list.removeAllViews()
+        val profiles = TrustCenter.allProfiles()
+        binding.tvTrustEmpty.visibility = if (profiles.isEmpty()) View.VISIBLE else View.GONE
+        for (p in profiles) {
+            val card = LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                setBackgroundColor(Color.parseColor("#241F38"))
+                setPadding(dp(12), dp(10), dp(12), dp(10))
+                val lp = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+                lp.setMargins(0, 0, 0, dp(8))
+                layoutParams = lp
+            }
+            card.addView(TextView(this).apply {
+                text = "${p.name} · ${TrustCenter.statusLine(p)}"
+                setTextColor(Color.WHITE); textSize = 14f
+            })
+            val btnRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; setPadding(0, dp(8), 0, 0) }
+            if (!p.approved) {
+                btnRow.addView(makeTrustBtn("同意") { TrustCenter.approveAi(this, p.id); Toast.makeText(this, "已同意「${p.name}」", Toast.LENGTH_SHORT).show() })
+                btnRow.addView(makeTrustBtn("拒绝") { TrustCenter.revokeAi(this, p.id); Toast.makeText(this, "已拒绝「${p.name}」", Toast.LENGTH_SHORT).show() })
+            } else {
+                btnRow.addView(makeTrustBtn("撤销") { TrustCenter.revokeAi(this, p.id); Toast.makeText(this, "已撤销「${p.name}」", Toast.LENGTH_SHORT).show() })
+                btnRow.addView(makeTrustBtn("延期30天") { TrustCenter.setExpiry(this, p.id, TrustCenter.EXPIRY_PRESETS[4]); Toast.makeText(this, "已延期「${p.name}」", Toast.LENGTH_SHORT).show() })
+            }
+            card.addView(btnRow)
+            list.addView(card)
+        }
+    }
+
+    private fun makeTrustBtn(label: String, onClick: () -> Unit): TextView {
+        return TextView(this).apply {
+            text = label
+            setTextColor(Color.WHITE); textSize = 13f
+            setPadding(dp(14), dp(8), dp(14), dp(8))
+            background = GradientDrawable().apply {
+                shape = GradientDrawable.RECTANGLE
+                cornerRadius = dp(8).toFloat()
+                setColor(Color.parseColor("#534AB7"))
+            }
+            val lp = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+            lp.setMargins(0, 0, dp(8), 0)
+            layoutParams = lp
+            setOnClickListener { onClick() }
+        }
+    }
+
+    private fun dp(v: Int): Int = (v * resources.displayMetrics.density + 0.5f).toInt()
+
     // ---------------------------------------------------------------- 连接请求弹窗
 
     private fun promptConnectRequest(aiId: String, aiName: String) {
         AlertDialog.Builder(this)
             .setTitle("有 AI 想连接 Rwant")
-            .setMessage("「$aiName」请求把 Rwant 当作它的嘴。\n\n同意后默认授权到今天 24 点，可随时重置/撤销；每一步操作都会留日志；急停随时可用。")
+            .setMessage("「$aiName」请求把 Rwant 当作它的嘴。\n\n同意后默认授权 30 天，可随时重置/撤销；每一步操作都会留日志；急停随时可用。")
             .setPositiveButton("同意") { _, _ ->
                 TrustCenter.approveAi(this, aiId)
                 Toast.makeText(this, "已同意「$aiName」连接 Rwant", Toast.LENGTH_SHORT).show()

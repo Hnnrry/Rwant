@@ -40,7 +40,7 @@ object TrustCenter {
     /** MCP 端口默认值（避开 Ridea 的 8765） */
     const val DEFAULT_PORT = 8766
 
-    private const val REQUEST_NOTIFY_INTERVAL_MS = 30_000L
+    private const val REQUEST_NOTIFY_INTERVAL_MS = 5_000L
 
     // ------------------------------------------------------------ 期限预设（授权模型第一层）
 
@@ -203,7 +203,8 @@ object TrustCenter {
         if (profile.clientVersion != clientVersion) { profile.clientVersion = clientVersion; persist(profile) }
         val gate = connectionGate(profile)
         if (gate == null) return null
-        if (profile.approved) notifyConnectionRequest(profile)
+        // pending / 已到期：无条件重新触达用户（缺陷2-根因1：避免重复请求静默丢失入口）
+        notifyConnectionRequest(profile)
         return gate
     }
 
@@ -220,7 +221,7 @@ object TrustCenter {
 
     // ------------------------------------------------------------ 审批 / 撤销 / 期限
 
-    fun approveAi(context: Context, aiId: String, preset: ExpiryPreset = EXPIRY_PRESETS[2]) {
+    fun approveAi(context: Context, aiId: String, preset: ExpiryPreset = EXPIRY_PRESETS[4]) {  // 默认 30 天（缺陷2-根因5：不再默认当天 24 点）
         init(context)
         val profile = profiles[aiId] ?: return
         profile.approved = true
@@ -318,7 +319,7 @@ object TrustCenter {
                 .setContentText("「${profile.name}」请求把 Rwant 当作它的嘴，是否同意？")
                 .setStyle(
                     NotificationCompat.BigTextStyle()
-                        .bigText("「${profile.name}」请求把 Rwant 当作它的嘴。\n同意后默认授权到今天 24 点，可随时在信任中心撤销。")
+                        .bigText("「${profile.name}」请求把 Rwant 当作它的嘴。\n同意后默认授权 30 天，可随时在信任中心撤销。")
                 )
                 .setAutoCancel(true)
                 .setContentIntent(open)
