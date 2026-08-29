@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- 悬浮窗：嘴要浮在所有界面之上 -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <!-- 前台服务：悬浮窗 + MCP 通道常驻 -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <!-- 麦克风：耳朵（ASR 听用户说话） -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <!-- 网络：MCP 与 AI 通信（仅局域网传输指令与对话，不落盘） -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- 通知：前台服务常驻通知 + 连接请求通知 -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- 保活：后台无限制 -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+    <!-- 保活：开机自启悬浮球 -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- 唤醒锁 -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <!-- 急停触觉反馈 -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+
+    <application
+        android:label="@string/app_name"
+        android:theme="@style/Theme.Material3.Dark.NoActionBar"
+        android:allowBackup="false"
+        android:supportsRtl="true">
+
+        <!-- 设置页（授权中心 + 状态开关） -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- 悬浮球 + 气泡面板（前台常驻） -->
+        <service
+            android:name=".FloatingService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Rwant floating mouth overlay" />
+        </service>
+
+        <!-- MCP 通道（AI 连接 Rwant 的本地 HTTP+SSE 服务，端口 8766） -->
+        <service
+            android:name=".McpServerService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Rwant local MCP channel for AI connection" />
+        </service>
+
+        <!-- 后台连接请求「同意/拒绝」通知按钮 -->
+        <receiver
+            android:name=".ConnectReceiver"
+            android:exported="false" />
+
+        <!-- 开机自启：系统开机广播 → 拉起悬浮球 -->
+        <receiver
+            android:name=".BootReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+    </application>
+</manifest>

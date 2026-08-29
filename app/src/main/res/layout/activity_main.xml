@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="20dp"
+    android:background="#15131F">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Rwant · 给每一个 AI 的嘴"
+        android:textColor="#FFFFFF"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:paddingBottom="12dp" />
+
+    <!-- 连接总开关 -->
+    <Button
+        android:id="@+id/btnToggleConnection"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_marginBottom="8dp"
+        android:backgroundTint="#534AB7"
+        android:textColor="#FFFFFF"
+        android:textSize="17sp"
+        android:textStyle="bold"
+        android:text="接收 AI 连接：关" />
+
+    <TextView
+        android:id="@+id/tvChannel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="4dp"
+        android:text="通道地址：未启动"
+        android:textColor="#BBBBBB"
+        android:textSize="13sp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingBottom="12dp">
+
+        <TextView
+            android:id="@+id/tvToken"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="令牌：—"
+            android:textColor="#888888"
+            android:textSize="12sp" />
+
+        <Button
+            android:id="@+id/btnResetToken"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="重置令牌"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <!-- 权限 -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="8dp"
+        android:paddingBottom="4dp"
+        android:text="权限"
+        android:textColor="#FFFFFF"
+        android:textSize="16sp" />
+
+    <TextView
+        android:id="@+id/tvStatusOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="悬浮窗：未授权"
+        android:textColor="#BBBBBB"
+        android:textSize="14sp" />
+    <Button android:id="@+id/btnOverlay" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="6dp" android:text="授权悬浮窗" />
+
+    <TextView
+        android:id="@+id/tvStatusMic"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="麦克风：未授权"
+        android:textColor="#BBBBBB"
+        android:textSize="14sp" />
+    <Button android:id="@+id/btnMic" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="6dp" android:text="授权麦克风" />
+
+    <TextView
+        android:id="@+id/tvStatusBattery"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="后台无限制：建议开启"
+        android:textColor="#BBBBBB"
+        android:textSize="14sp" />
+    <Button android:id="@+id/btnBattery" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="12dp" android:text="后台无限制" />
+
+    <!-- 音色 -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="8dp"
+        android:paddingBottom="2dp"
+        android:text="音色"
+        android:textColor="#FFFFFF"
+        android:textSize="16sp" />
+
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="音量" android:textColor="#BBBBBB" android:textSize="13sp" />
+    <SeekBar android:id="@+id/seekVolume" android:layout_width="match_parent" android:layout_height="wrap_content" android:max="100" android:progress="100" />
+
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="语速" android:textColor="#BBBBBB" android:textSize="13sp" />
+    <SeekBar android:id="@+id/seekRate" android:layout_width="match_parent" android:layout_height="wrap_content" android:max="200" android:progress="100" android:layout_marginBottom="8dp" />
+
+    <Switch
+        android:id="@+id/switchAutoListen"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="自动倾听（AI 开启后持续听，说完自动续听）"
+        android:textColor="#BBBBBB"
+        android:textSize="13sp" />
+
+    <Button
+        android:id="@+id/btnClearLogs"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="清空对话气泡" />
+
+    <TextView
+        android:id="@+id/tvLastOp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="12dp"
+        android:text="最近操作：尚无"
+        android:textColor="#888888"
+        android:textSize="12sp" />
+</LinearLayout>

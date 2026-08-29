@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Rwant</string>
+    <string name="accessibility_service_description">Rwant：给 AI 的「嘴」。通过悬浮球把 AI 的话朗读/显示出来，并把用户说的话收回来。嘴永远不思考，思考的永远是 AI。</string>
+</resources>
