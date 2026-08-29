@@ -1,6 +1,8 @@
 package com.hnnrry.rwant
 
 import android.Manifest
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -59,6 +61,16 @@ class MainActivity : AppCompatActivity() {
             TrustCenter.resetToken(this)
             refreshChannel()
             Toast.makeText(this, "令牌已重置，旧令牌失效", Toast.LENGTH_SHORT).show()
+        }
+
+        binding.btnCopyAddr.setOnClickListener {
+            val addr = if (McpServerService.isRunning) McpServerService.endpointUrl(this) else ""
+            if (addr.isNotEmpty()) copyToClipboard("Rwant 通道地址", addr)
+            else Toast.makeText(this, "通道未启动，请先开启连接", Toast.LENGTH_SHORT).show()
+        }
+        binding.btnCopyToken.setOnClickListener {
+            val token = TrustCenter.getToken(this)
+            copyToClipboard("Rwant 连接令牌", token)
         }
 
         binding.btnOverlay.setOnClickListener { requestOverlay() }
@@ -133,13 +145,19 @@ class MainActivity : AppCompatActivity() {
 
     private fun refreshChannel() {
         binding.tvChannel.text = if (McpServerService.isRunning) "通道地址：${McpServerService.endpointUrl(this)}" else "通道地址：未启动"
-        binding.tvToken.text = "令牌：${TrustCenter.getToken(this).take(12)}…（设置页可见）"
+        binding.tvToken.text = "令牌：${TrustCenter.getToken(this)}"
         binding.btnToggleConnection.text = if (McpServerService.isRunning) "接收 AI 连接：开" else "接收 AI 连接：关"
         connected = McpServerService.isRunning
     }
 
     private fun applyVolume(v: Float) { FloatingService.instance?.setVolume(v) }
     private fun applyRate(r: Float) { FloatingService.instance?.setRate(r) }
+
+    private fun copyToClipboard(label: String, text: String) {
+        val cm = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
+        cm.setPrimaryClip(ClipData.newPlainText(label, text))
+        Toast.makeText(this, "已复制：${text.take(16)}…", Toast.LENGTH_SHORT).show()
+    }
 
     // ---------------------------------------------------------------- 权限
 
