@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.content.Intent
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
@@ -37,13 +38,6 @@ class AsrEngine(context: Context) {
 
     private val mainHandler = Handler(Looper.getMainLooper())
 
-    init {
-        if (SpeechRecognizer.isRecognitionAvailable(appContext)) {
-            recognizer = SpeechRecognizer.createSpeechRecognizer(appContext)
-            recognizer?.setRecognitionListener(listener)
-        }
-    }
-
     private val listener = object : RecognitionListener {
         override fun onReadyForSpeech(params: Bundle?) {}
         override fun onBeginningOfSpeech() {}
@@ -67,6 +61,13 @@ class AsrEngine(context: Context) {
             if (!matches.isNullOrEmpty()) onPartial?.invoke(matches[0])
         }
         override fun onEvent(eventType: Int, params: Bundle?) {}
+    }
+
+    init {
+        if (SpeechRecognizer.isRecognitionAvailable(appContext)) {
+            recognizer = SpeechRecognizer.createSpeechRecognizer(appContext)
+            recognizer?.setRecognitionListener(listener)
+        }
     }
 
     private fun deliver(results: Bundle?) {

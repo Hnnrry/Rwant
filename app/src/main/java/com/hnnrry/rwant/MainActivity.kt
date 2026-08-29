@@ -91,14 +91,6 @@ class MainActivity : AppCompatActivity() {
         registerReceiver(connectReceiver, IntentFilter(TrustCenter.ACTION_CONNECT_REQUEST))
     }
 
-    private fun applyVolume(v: Float) {
-        // 通过 FloatingService 暴露的 tts 设置音量；tts 为私有，这里用 companion 的 setter
-        FloatingService.instance?.let { setTtsVolume(it, v) }
-    }
-    private fun applyRate(r: Float) {
-        FloatingService.instance?.let { setTtsRate(it, r) }
-    }
-
     override fun onResume() {
         super.onResume()
         TrustCenter.mainUiInForeground = true

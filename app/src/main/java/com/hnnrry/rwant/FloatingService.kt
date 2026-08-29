@@ -16,6 +16,7 @@ import android.os.IBinder
 import android.os.Looper
 import android.util.Log
 import android.view.Gravity
+import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
@@ -262,12 +263,12 @@ class FloatingService : Service() {
             gravity = Gravity.TOP or Gravity.END
             x = dp(12); y = dp(90)
         }
-        val panel = layoutInflater.inflate(R.layout.floating_panel, null)
+        val panel = LayoutInflater.from(this).inflate(R.layout.floating_panel, null)
         panel.findViewById<View>(R.id.btnCollapse).setOnClickListener { removePanel() }
         panel.findViewById<View>(R.id.btnClear).setOnClickListener { clearBubbles() }
 
         val mic = panel.findViewById<TextView>(R.id.btnMic)
-        mic.setOnTouchListener { _, event ->
+        mic.setOnTouchListener { _: View, event: MotionEvent ->
             when (event.actionMasked) {
                 MotionEvent.ACTION_DOWN -> { startListen("push"); true }
                 MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> { stopListen(); true }

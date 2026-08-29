@@ -55,8 +55,7 @@ class TtsEngine(context: Context) {
         applyVolume()
         tts?.setPitch(pitch)
         tts?.setSpeechRate(rate)
-        val params = HashMap<String, String>()
-        tts?.speak(text, TextToSpeech.QUEUE_FLUSH, params, "rwant_${System.currentTimeMillis()}")
+        tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, "rwant_${System.currentTimeMillis()}")
     }
 
     fun stop() { runCatching { tts?.stop() } }

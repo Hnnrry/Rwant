@@ -140,7 +140,7 @@ class McpProtocol(private val context: Context) : MiniHttpServer.Handler {
             handleNotification(method)
             return MiniHttpServer.HttpResponse.json(202, "Accepted", "")
         }
-        val (result, newSessionId) = dispatch(method, (map["params"] as? Map<*, *>) ?: emptyMap(), request)
+        val (result, newSessionId) = dispatch(method, (map["params"] as? Map<*, *>) ?: emptyMap<Any, Any>(), request)
         val headers = if (method == "initialize" && newSessionId != null) mapOf("Mcp-Session-Id" to newSessionId) else emptyMap()
         return MiniHttpServer.HttpResponse.json(200, "OK", MiniJson.write(responseBody(id, result)), headers)
     }
