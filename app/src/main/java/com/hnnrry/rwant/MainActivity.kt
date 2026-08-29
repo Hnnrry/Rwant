@@ -88,7 +88,12 @@ class MainActivity : AppCompatActivity() {
         }
 
         LogStore.addOperationListener(lastOpListener)
-        registerReceiver(connectReceiver, IntentFilter(TrustCenter.ACTION_CONNECT_REQUEST))
+        // Android 13+ (targetSdk 34) 要求注册广播必须显式声明导出标志，否则冷启动即崩溃
+        ContextCompat.registerReceiver(
+            this, connectReceiver,
+            IntentFilter(TrustCenter.ACTION_CONNECT_REQUEST),
+            ContextCompat.RECEIVER_NOT_EXPORTED
+        )
     }
 
     override fun onResume() {
