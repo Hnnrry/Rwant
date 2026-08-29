@@ -81,7 +81,7 @@ class AsrEngine(context: Context) {
     fun start(mode: String) {
         if (EmergencyStop.isActive()) { onError?.invoke("已急停：无法倾听"); return }
         if (!SpeechRecognizer.isRecognitionAvailable(appContext)) {
-            onError?.invoke("设备不支持语音识别"); return
+            onError?.invoke("设备无语音识别引擎（请安装讯飞/百度输入法，或改用打字输入）"); return
         }
         autoStopOnSilence = (mode == "auto")
         if (recognizer == null) recognizer = SpeechRecognizer.createSpeechRecognizer(appContext)

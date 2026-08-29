@@ -7,6 +7,10 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.Manifest
+import android.speech.SpeechRecognizer
+import androidx.core.content.ContextCompat
 import android.graphics.Color
 import android.graphics.PixelFormat
 import android.graphics.drawable.GradientDrawable
@@ -110,8 +114,8 @@ class FloatingService : Service() {
                 McpProtocol.current?.pushTranscript(txt)
                 if (!asr!!.listening) updateStatus("空闲")
             }
-            onError = { msg -> runOnUi { updateStatus("听写出错：$msg") } }
-            onStop = { if (mood != "speaking") updateStatus("空闲") }
+            onError = { msg -> runOnUi { ensurePanelForBubble(); updateStatus("听写出错：$msg") } }
+            onStop = { updateStatus("空闲") }
         }
 
         EmergencyStop.addListener { stopped ->
@@ -350,7 +354,15 @@ class FloatingService : Service() {
     // ---------------------------------------------------------------- 听（ASR）
 
     fun startListen(mode: String) {
-        if (EmergencyStop.isActive()) { runOnUi { updateStatus("已急停：无法倾听") }; return }
+        if (EmergencyStop.isActive()) { runOnUi { ensurePanelForBubble(); updateStatus("已急停：无法倾听") }; return }
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            runOnUi { ensurePanelForBubble(); updateStatus("未授权麦克风：请先在设置页点「授权麦克风」") }
+            return
+        }
+        if (!SpeechRecognizer.isRecognitionAvailable(this)) {
+            runOnUi { ensurePanelForBubble(); updateStatus("设备无语音识别引擎：建议安装讯飞/百度输入法，或改用打字输入") }
+            return
+        }
         asr?.start(mode)
         updateStatus(if (mode == "auto") "自动倾听中…" else "按住说话中…")
     }
