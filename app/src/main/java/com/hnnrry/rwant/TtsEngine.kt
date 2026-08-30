@@ -33,6 +33,12 @@ class TtsEngine(context: Context) {
 
     private var initAttempts = 0
 
+    private fun createTts() {
+        // 构造 TextToSpeech；失败静默忽略，等待下次重试。
+        // 抽成函数是为了打断 initListener 递归 lambda 内的类型推断死循环。
+        runCatching { tts = TextToSpeech(appContext, initListener) }
+    }
+
     private val initListener = TextToSpeech.OnInitListener { status ->
         if (status == TextToSpeech.SUCCESS) {
             tts?.language = Locale.SIMPLIFIED_CHINESE
@@ -44,13 +50,13 @@ class TtsEngine(context: Context) {
             initAttempts++
             if (initAttempts <= INIT_MAX_RETRIES) {
                 try { Thread.sleep(INIT_RETRY_DELAY_MS) } catch (_: InterruptedException) { return@OnInitListener }
-                runCatching { tts = TextToSpeech(appContext, initListener) }
+                createTts()
             }
         }
     }
 
     init {
-        runCatching { tts = TextToSpeech(appContext, initListener) }
+        createTts()
         tts?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
             override fun onStart(utteranceId: String?) { onState?.invoke(true) }
             override fun onDone(utteranceId: String?) { onState?.invoke(false) }
