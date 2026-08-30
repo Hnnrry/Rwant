@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 极简清爽风：继承 Material3 Light，覆盖状态栏/主色为浅色系 -->
+    <style name="Theme.Rwant" parent="Theme.Material3.Light.NoActionBar">
+        <!-- 状态栏 = 页面背景色（消除顶部紫条） -->
+        <item name="android:statusBarColor">@color/bg_primary</item>
+        <!-- 主色调用深灰而非 Material3 默认紫 -->
+        <item name="colorPrimary">@color/accent</item>
+        <item name="colorOnPrimary">@color/surface_card</item>
+        <!-- 表面色 -->
+        <item name="colorSurface">@color/bg_primary</item>
+        <item name="colorOnSurface">@color/text_primary</item>
+        <!-- 按钮深色圆角胶囊 -->
+        <item name="colorPrimaryContainer">@color/text_primary</item>
+        <item name="colorOnPrimaryContainer">@color/surface_card</item>
+    </style>
+</resources>
