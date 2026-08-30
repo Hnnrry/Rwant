@@ -3,10 +3,8 @@ package com.hnnrry.rwant
 import android.Manifest
 import android.content.ClipData
 import android.content.ClipboardManager
-import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.graphics.Color
@@ -22,7 +20,6 @@ import android.widget.LinearLayout
 import android.widget.SeekBar
 import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -36,7 +33,7 @@ import com.hnnrry.rwant.databinding.ActivityMainBinding
  *   - 展示通道地址与连接令牌，令牌可一键重置；
  *   - 权限引导：悬浮窗 / 麦克风 / 后台无限制；
  *   - 音色：音量、语速滑块，实时生效；自动倾听开关；
- *   - AI 请求连接时前台弹「同意 / 拒绝」（后台走通知，由 ConnectReceiver 处理）。
+ *   - AI 请求连接时前台「连接请求卡片」+ 信任中心（轮询刷新，不依赖广播，避免 MIUI 丢广播导致入口丢失）。
  */
 class MainActivity : AppCompatActivity() {
 
@@ -50,15 +47,6 @@ class MainActivity : AppCompatActivity() {
             refreshRequestCard()
             refreshTrustList()
             pollHandler.postDelayed(this, 1000)
-        }
-    }
-
-    private val connectReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            if (intent?.action != TrustCenter.ACTION_CONNECT_REQUEST) return
-            val aiId = intent.getStringExtra(TrustCenter.EXTRA_AI_ID) ?: return
-            val aiName = intent.getStringExtra(TrustCenter.EXTRA_AI_NAME) ?: "未命名 AI"
-            promptConnectRequest(aiId, aiName)
         }
     }
 
@@ -117,12 +105,6 @@ class MainActivity : AppCompatActivity() {
         }
 
         LogStore.addOperationListener(lastOpListener)
-        // Android 13+ (targetSdk 34) 要求注册广播必须显式声明导出标志，否则冷启动即崩溃
-        ContextCompat.registerReceiver(
-            this, connectReceiver,
-            IntentFilter(TrustCenter.ACTION_CONNECT_REQUEST),
-            ContextCompat.RECEIVER_NOT_EXPORTED
-        )
     }
 
     override fun onResume() {
@@ -142,7 +124,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         LogStore.removeOperationListener(lastOpListener)
-        runCatching { unregisterReceiver(connectReceiver) }
         super.onDestroy()
     }
 
@@ -234,7 +215,7 @@ class MainActivity : AppCompatActivity() {
         for (p in profiles) {
             val card = LinearLayout(this).apply {
                 orientation = LinearLayout.VERTICAL
-                setBackgroundColor(Color.parseColor("#241F38"))
+                setBackgroundColor(Color.parseColor("#FFFFFF"))
                 setPadding(dp(12), dp(10), dp(12), dp(10))
                 val lp = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
                 lp.setMargins(0, 0, 0, dp(8))
@@ -242,7 +223,7 @@ class MainActivity : AppCompatActivity() {
             }
             card.addView(TextView(this).apply {
                 text = "${p.name} · ${TrustCenter.statusLine(p)}"
-                setTextColor(Color.WHITE); textSize = 14f
+                setTextColor(Color.parseColor("#1A1A1A")); textSize = 14f
             })
             val btnRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; setPadding(0, dp(8), 0, 0) }
             if (!p.approved) {
@@ -265,7 +246,7 @@ class MainActivity : AppCompatActivity() {
             background = GradientDrawable().apply {
                 shape = GradientDrawable.RECTANGLE
                 cornerRadius = dp(8).toFloat()
-                setColor(Color.parseColor("#534AB7"))
+                setColor(Color.parseColor("#1A1A1A"))
             }
             val lp = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
             lp.setMargins(0, 0, dp(8), 0)
@@ -275,19 +256,4 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun dp(v: Int): Int = (v * resources.displayMetrics.density + 0.5f).toInt()
-
-    // ---------------------------------------------------------------- 连接请求弹窗
-
-    private fun promptConnectRequest(aiId: String, aiName: String) {
-        AlertDialog.Builder(this)
-            .setTitle("有 AI 想连接 Rwant")
-            .setMessage("「$aiName」请求把 Rwant 当作它的嘴。\n\n同意后默认授权 30 天，可随时重置/撤销；每一步操作都会留日志；急停随时可用。")
-            .setPositiveButton("同意") { _, _ ->
-                TrustCenter.approveAi(this, aiId)
-                Toast.makeText(this, "已同意「$aiName」连接 Rwant", Toast.LENGTH_SHORT).show()
-            }
-            .setNegativeButton("拒绝") { _, _ -> TrustCenter.revokeAi(this, aiId) }
-            .setCancelable(false)
-            .show()
-    }
 }

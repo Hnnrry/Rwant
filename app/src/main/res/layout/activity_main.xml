@@ -4,13 +4,13 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="20dp"
-    android:background="#15131F">
+    android:background="@color/bg_primary">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Rwant · 给每一个 AI 的嘴"
-        android:textColor="#FFFFFF"
+        android:textColor="@color/text_primary"
         android:textSize="22sp"
         android:textStyle="bold"
         android:paddingBottom="12dp" />
@@ -21,7 +21,7 @@
         android:layout_width="match_parent"
         android:layout_height="56dp"
         android:layout_marginBottom="8dp"
-        android:backgroundTint="#534AB7"
+        android:backgroundTint="@color/accent"
         android:textColor="#FFFFFF"
         android:textSize="17sp"
         android:textStyle="bold"
@@ -33,7 +33,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:background="#2A2440"
+        android:background="@color/surface_card"
         android:padding="12dp"
         android:layout_marginBottom="8dp"
         android:visibility="gone">
@@ -43,7 +43,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="等待 AI 连接…"
-            android:textColor="#FFFFFF"
+            android:textColor="@color/text_primary"
             android:textSize="14sp" />
 
         <Button
@@ -51,7 +51,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:backgroundTint="#534AB7"
+            android:backgroundTint="@color/accent"
             android:textColor="#FFFFFF"
             android:text="同意连接" />
     </LinearLayout>
@@ -61,7 +61,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="暂无连接请求，等待 AI 连接…"
-        android:textColor="#666666"
+        android:textColor="@color/text_secondary"
         android:textSize="13sp"
         android:layout_marginBottom="8dp" />
 
@@ -78,7 +78,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="通道地址：未启动"
-            android:textColor="#BBBBBB"
+            android:textColor="@color/text_secondary"
             android:textSize="13sp"
             android:ellipsize="middle"
             android:singleLine="true" />
@@ -92,8 +92,8 @@
             android:text="复制地址"
             android:minHeight="0dp"
             android:paddingHorizontal="10dp"
-            android:backgroundTint="#3D3578"
-            android:textColor="#CCCCCC" />
+            android:backgroundTint="@color/border"
+            android:textColor="@color/text_primary" />
     </LinearLayout>
 
     <LinearLayout
@@ -109,7 +109,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="令牌：—"
-            android:textColor="#AAAAAA"
+            android:textColor="@color/text_secondary"
             android:textSize="12sp"
             android:ellipsize="middle"
             android:singleLine="true" />
@@ -123,8 +123,8 @@
             android:text="复制令牌"
             android:minHeight="0dp"
             android:paddingHorizontal="10dp"
-            android:backgroundTint="#3D3578"
-            android:textColor="#CCCCCC" />
+            android:backgroundTint="@color/border"
+            android:textColor="@color/text_primary" />
 
         <Button
             android:id="@+id/btnResetToken"
@@ -135,8 +135,8 @@
             android:text="重置"
             android:minHeight="0dp"
             android:paddingHorizontal="10dp"
-            android:backgroundTint="#5C2D2D"
-            android:textColor="#FFAAAA" />
+            android:backgroundTint="@color/danger"
+            android:textColor="#FFFFFF" />
     </LinearLayout>
 
     <!-- 权限 -->
@@ -146,7 +146,7 @@
         android:paddingTop="8dp"
         android:paddingBottom="4dp"
         android:text="权限"
-        android:textColor="#FFFFFF"
+        android:textColor="@color/text_primary"
         android:textSize="16sp" />
 
     <TextView
@@ -154,27 +154,27 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="悬浮窗：未授权"
-        android:textColor="#BBBBBB"
+        android:textColor="@color/text_secondary"
         android:textSize="14sp" />
-    <Button android:id="@+id/btnOverlay" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="6dp" android:text="授权悬浮窗" />
+    <Button android:id="@+id/btnOverlay" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="6dp" android:text="授权悬浮窗" android:backgroundTint="@color/accent" android:textColor="#FFFFFF" />
 
     <TextView
         android:id="@+id/tvStatusMic"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="麦克风：未授权"
-        android:textColor="#BBBBBB"
+        android:textColor="@color/text_secondary"
         android:textSize="14sp" />
-    <Button android:id="@+id/btnMic" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="6dp" android:text="授权麦克风" />
+    <Button android:id="@+id/btnMic" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="6dp" android:text="授权麦克风" android:backgroundTint="@color/accent" android:textColor="#FFFFFF" />
 
     <TextView
         android:id="@+id/tvStatusBattery"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="后台无限制：建议开启"
-        android:textColor="#BBBBBB"
+        android:textColor="@color/text_secondary"
         android:textSize="14sp" />
-    <Button android:id="@+id/btnBattery" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="12dp" android:text="后台无限制" />
+    <Button android:id="@+id/btnBattery" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="12dp" android:text="后台无限制" android:backgroundTint="@color/accent" android:textColor="#FFFFFF" />
 
     <!-- 音色 -->
     <TextView
@@ -183,13 +183,13 @@
         android:paddingTop="8dp"
         android:paddingBottom="2dp"
         android:text="音色"
-        android:textColor="#FFFFFF"
+        android:textColor="@color/text_primary"
         android:textSize="16sp" />
 
-    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="音量" android:textColor="#BBBBBB" android:textSize="13sp" />
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="音量" android:textColor="@color/text_secondary" android:textSize="13sp" />
     <SeekBar android:id="@+id/seekVolume" android:layout_width="match_parent" android:layout_height="wrap_content" android:max="100" android:progress="100" />
 
-    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="语速" android:textColor="#BBBBBB" android:textSize="13sp" />
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="语速" android:textColor="@color/text_secondary" android:textSize="13sp" />
     <SeekBar android:id="@+id/seekRate" android:layout_width="match_parent" android:layout_height="wrap_content" android:max="200" android:progress="100" android:layout_marginBottom="8dp" />
 
     <Switch
@@ -197,7 +197,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="自动倾听（AI 开启后持续听，说完自动续听）"
-        android:textColor="#BBBBBB"
+        android:textColor="@color/text_secondary"
         android:textSize="13sp" />
 
     <Button
@@ -205,7 +205,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:text="清空对话气泡" />
+        android:text="清空对话气泡"
+        android:backgroundTint="@color/accent"
+        android:textColor="#FFFFFF" />
 
     <!-- 信任中心 -->
     <TextView
@@ -214,7 +216,7 @@
         android:paddingTop="12dp"
         android:paddingBottom="4dp"
         android:text="信任中心（已连接 / 待确认 AI）"
-        android:textColor="#FFFFFF"
+        android:textColor="@color/text_primary"
         android:textSize="16sp" />
 
     <LinearLayout
@@ -228,7 +230,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="（还没有任何 AI 档案）"
-        android:textColor="#666666"
+        android:textColor="@color/text_secondary"
         android:textSize="13sp" />
 
     <TextView
@@ -237,6 +239,6 @@
         android:layout_height="wrap_content"
         android:paddingTop="12dp"
         android:text="最近操作：尚无"
-        android:textColor="#888888"
+        android:textColor="@color/text_secondary"
         android:textSize="12sp" />
 </LinearLayout>

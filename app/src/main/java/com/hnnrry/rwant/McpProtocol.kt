@@ -305,9 +305,13 @@ class McpProtocol(private val context: Context) : MiniHttpServer.Handler {
         "content" to listOf(linkedMapOf("type" to "text", "text" to text)), "isError" to false
     )
 
+    private fun err(text: String): Map<String, Any?> = linkedMapOf(
+        "content" to listOf(linkedMapOf("type" to "text", "text" to text)), "isError" to true
+    )
+
     private val toolSpecs: List<ToolSpec> by lazy {
         listOf(
-            tool("speak", "让 AI 说的话通过悬浮球朗读并显示出来（TTS）。参数 text 为要说的文字；quiet=true 时只显示气泡不发声。",
+            tool("speak", "让 AI 说的话通过悬浮球朗读并显示出来（TTS）。参数 text 为要说的文字；quiet=true 时只显示气泡不发声。返回结果真实反映是否出声。",
                 required = listOf("text"),
                 properties = mapOf(
                     "text" to mapOf("type" to "string", "description" to "AI 要「说」出来的话"),
@@ -316,9 +320,13 @@ class McpProtocol(private val context: Context) : MiniHttpServer.Handler {
             ) { ctx ->
                 val text = requiredString(ctx, "text")
                 val quiet = (ctx.args["quiet"] as? Boolean) ?: false
-                FloatingService.instance?.speak(text, quiet)
-                    ?: return@tool ok("（悬浮球未运行，已记录）")
-                ok(if (quiet) "已静默显示：$text" else "已朗读：$text")
+                val fs = FloatingService.instance ?: return@tool ok("（悬浮球未运行，已记录）")
+                val spoken = fs.speak(text, quiet)
+                when {
+                    quiet -> ok("已静默显示：$text")
+                    spoken -> ok("已朗读：$text")
+                    else -> err("失败：TTS 未就绪，请稍后重试")
+                }
             },
 
             tool("speak_quiet", "只把文字显示在悬浮气泡里，不发声（等价于 speak 的静音模式）。",
@@ -392,13 +400,14 @@ class McpProtocol(private val context: Context) : MiniHttpServer.Handler {
                 ok("共 ${lines.size} 条，返回最近 ${tail.size} 条：\n" + tail.joinToString("\n"))
             },
 
-            tool("get_status", "Rwant 当前状态：急停是否生效、悬浮球状态、授权 AI、通道地址、版本。",
+            tool("get_status", "Rwant 当前状态：急停是否生效、TTS 是否就绪、悬浮球状态、授权 AI、通道地址、版本。",
                 properties = emptyMap()
             ) { _ ->
                 val metrics = context.resources.displayMetrics
                 ok(MiniJson.write(linkedMapOf(
                     "server" to SERVER_NAME, "version" to SERVER_VERSION, "protocol" to LATEST_PROTOCOL_VERSION,
                     "emergencyStop" to EmergencyStop.isActive(),
+                    "ttsReady" to (FloatingService.instance?.ttsReady() ?: false),
                     "mood" to (FloatingService.instance?.mood ?: "n/a"),
                     "floatingRunning" to FloatingService.isRunning,
                     "authorizedAis" to TrustCenter.allProfiles().count { TrustCenter.connectionGate(it) == null },

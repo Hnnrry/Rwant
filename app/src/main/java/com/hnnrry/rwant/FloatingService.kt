@@ -36,7 +36,7 @@ import android.content.pm.ServiceInfo
  *
  * 职责：
  *   - 任意 App 上方常驻一个 48dp 悬浮球，三态变色：空闲(半透明) / 思考(呼吸) / 说话(高亮)；
- *   - 点球展开深色对话面板：AI 说话流式气泡、用户消息小气泡、最近对话可滚动、可清空；
+ *   - 点球展开对话面板：AI 说话流式气泡、用户消息小气泡、最近对话可滚动、可清空；
  *   - 麦克风按住说话（push）/ 自动倾听（auto），识别结果回传 AI；
  *   - 持有 TTS / ASR 引擎，把 AI 的话播出来、把用户的话收回来。
  *
@@ -83,6 +83,8 @@ class FloatingService : Service() {
     private var panelParams: WindowManager.LayoutParams? = null
 
     private var tts: TtsEngine? = null
+    /** TTS 是否就绪（get_status 工具读这个） */
+    fun ttsReady(): Boolean = tts?.ready == true
     private var asr: AsrEngine? = null
 
     /** 最近一次用户说的话（get_transcript 工具取这个） */
@@ -346,9 +348,9 @@ class FloatingService : Service() {
         panelView?.findViewById<TextView>(R.id.tvStatus)?.text = text
     }
 
-    /** AI 说话：流出气泡（quiet=true 时不发声，只显示） */
-    fun speak(text: String, quiet: Boolean = false) {
-        if (EmergencyStop.isActive()) return
+    /** AI 说话：流出气泡（quiet=true 时不发声，只显示）。返回是否真正出声。 */
+    fun speak(text: String, quiet: Boolean = false): Boolean {
+        if (EmergencyStop.isActive()) return false
         LogStore.operation("AI", "说", if (quiet) "（静音）$text" else text)
         autoPanel = true
         runOnUi {
@@ -356,7 +358,7 @@ class FloatingService : Service() {
             addBubble(text, isUser = false)
             setMood("speaking")
         }
-        tts?.speak(text, quiet)
+        return tts?.speak(text, quiet) ?: false
     }
 
     /** 用户说话：右侧气泡 */
@@ -377,12 +379,12 @@ class FloatingService : Service() {
         val bubble = TextView(this).apply {
             this.text = text
             textSize = 14f
-            setTextColor(Color.WHITE)
+            setTextColor(if (isUser) Color.WHITE else Color.parseColor("#1A1A1A"))
             setPadding(dp(12), dp(8), dp(12), dp(8))
             background = GradientDrawable().apply {
                 shape = GradientDrawable.RECTANGLE
                 cornerRadius = dp(12).toFloat()
-                setColor(if (isUser) Color.argb(255, 70, 110, 200) else Color.argb(255, 60, 54, 110))
+                setColor(if (isUser) Color.parseColor("#1A1A1A") else Color.parseColor("#F0F0F0"))
             }
             val lp = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT,

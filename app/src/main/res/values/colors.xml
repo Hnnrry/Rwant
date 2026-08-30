@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 极简清爽风色板：浅灰底 + 白卡 + 细边框 + 两档字色 + 红警示，零渐变零毛玻璃 -->
+    <color name="bg_primary">#F7F7F7</color>
+    <color name="surface_card">#FFFFFF</color>
+    <color name="border">#E5E5E5</color>
+    <color name="text_primary">#1A1A1A</color>
+    <color name="text_secondary">#8A8A8A</color>
+    <color name="accent">#1A1A1A</color>
+    <color name="danger">#D93025</color>
+</resources>
